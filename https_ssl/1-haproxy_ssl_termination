@@ -39,15 +39,16 @@ frontend www-http
         default_backend web-backend
 frontend www-https
         bind *:443 ssl crt /etc/haproxy/chysco.tech.pem/chysco.tech.pem
-        http-request set-header X-Forwarded-Proto https
         acl letsencrypt-acl path_beg /.well-known/acme-challenge/
         use_backend letsencrypt-backend if letsencrypt-acl
         default_backend web-backend
 
 backend web-backend
-        redirect scheme https unless { ssl_fc }
-        server 4803-web-01 23.20.180.164:80 check
-        server 4803-web-02 3.91.191.194:80 check
+        mode tcp
+        option tcplog
+        balance roundrobin
+        server 4803-web-01 23.20.180.164:443 check ssl verify none
+        server 4803-web-02 3.91.191.194:443 check ssl verify none
 backend letsencrypt-backend
    server letsencrypt 127.0.0.1:54321
 ~
